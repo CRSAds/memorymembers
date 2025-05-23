@@ -15,23 +15,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const response = await fetch("https://cms.core.909play.com/items/players", {
+      const response = await fetch("https://memorymembers.vercel.app/api/register-player", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          username,
-          email,
-          password
-        })
+        body: JSON.stringify({ username, email, password })
       });
 
       const result = await response.json();
 
       if (response.ok) {
         alert("Account succesvol aangemaakt!");
-        window.location.href = "/memorymembers/login"; // Pas dit aan naar je loginpagina
+        window.location.href = "/memorymembers/login"; // pas aan naar jouw loginpagina
       } else {
         console.error(result);
         alert("Fout bij registreren: " + (result.errors?.[0]?.message || result.message || "Onbekende fout"));
