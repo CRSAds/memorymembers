@@ -5,27 +5,40 @@ document.addEventListener("DOMContentLoaded", function () {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    const username = form.username.value.trim();
     const email = form.email.value.trim();
     const password = form.password.value.trim();
 
+    if (!username || !email || !password) {
+      alert("Vul alle velden in.");
+      return;
+    }
+
     try {
-      const res = await fetch("https://cms.core.909play.com/auth/register", {
+      const response = await fetch("https://cms.core.909play.com/items/players", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password
+        })
       });
 
-      const data = await res.json();
+      const result = await response.json();
 
-      if (res.ok) {
-        alert("Registratie gelukt! Je kunt nu inloggen.");
-        window.location.href = "/login";
+      if (response.ok) {
+        alert("Account succesvol aangemaakt!");
+        window.location.href = "/memorymembers/login"; // Pas dit aan naar je loginpagina
       } else {
-        alert("Fout: " + (data.errors?.[0]?.message || "Onbekende fout"));
+        console.error(result);
+        alert("Fout bij registreren: " + (result.errors?.[0]?.message || result.message || "Onbekende fout"));
       }
     } catch (err) {
-      console.error("Registratiefout:", err);
-      alert("Verbinding mislukt. Probeer het later opnieuw.");
+      console.error(err);
+      alert("Verbinding mislukt.");
     }
   });
 });
