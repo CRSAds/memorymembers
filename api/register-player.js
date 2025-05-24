@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
-  // ✅ CORS headers toevoegen
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
-    return res.status(200).end(); // preflight check OK
+    return res.status(200).end(); // preflight OK
   }
 
   if (req.method !== "POST") {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer aEH-mlGi96opyIbU-sA-a_L30TZWoCpl"
+        "Authorization": "Bearer aEH-mlGi96opyIbU-sA-a_L30TZWoCpl" // <<< JOUW TOKEN
       },
       body: JSON.stringify({ username, email, password })
     });
