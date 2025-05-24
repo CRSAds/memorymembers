@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const password = form.password.value.trim();
 
     if (!username || !email || !password) {
-      console.warn("Formulier onvolledig ingevuld.");
+      console.warn("Vul alle velden in.");
       return;
     }
 
@@ -24,12 +24,19 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const result = await response.json();
+      console.log("Registratie respons:", result);
 
-      if (response.ok) {
-        console.log("Account succesvol aangemaakt!");
-        window.location.href = "/memorygamespelen";
-      } else {
+      if (!response.ok) {
         console.error("Fout bij registreren:", result.errors?.[0]?.message || result.message || "Onbekende fout");
+        return;
+      }
+
+      // ✅ Token ophalen uit response
+      if (result.data && result.data.access_token) {
+        const token = encodeURIComponent(result.data.access_token);
+        window.location.href = "/memorygamespelen?token=" + token;
+      } else {
+        console.warn("Geen toegangstoken ontvangen bij registratie:", result);
       }
     } catch (err) {
       console.error("Verbinding mislukt:", err);
