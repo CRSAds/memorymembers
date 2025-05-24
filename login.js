@@ -23,13 +23,16 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // ✅ Token ophalen uit response
-      if (result.data && result.data.access_token) {
-        const token = encodeURIComponent(result.data.access_token);
-        window.location.href = "/memorygamespelen?token=" + token;
-      } else {
-        console.warn("Geen toegangstoken ontvangen:", result);
+      if (!result.access_token) {
+        console.warn("⚠️ Geen toegangstoken ontvangen:", result);
+        return;
       }
+
+      localStorage.setItem("access_token", result.access_token);
+      localStorage.setItem("user_id", result.user.id);
+      localStorage.setItem("username", result.user.username);
+
+      window.location.href = "/memorygamespelen";
     } catch (err) {
       console.error("Fout:", err);
     }
