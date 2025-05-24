@@ -1,114 +1,91 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const root = document.getElementById("game-root");
-  if (!root) return;
-
-  // ✅ Controleer of speler is ingelogd
   const playerData = localStorage.getItem("player");
-  if (!playerData) {
-    root.innerHTML = "<p style='text-align:center; font-size: 1.5rem;'>Je bent niet ingelogd. Log in om te spelen.</p>";
+  const root = document.getElementById("game-root");
+  if (!root || !playerData) {
+    document.body.innerHTML = "<p style='text-align:center;margin-top:40vh;font-size:24px'>Je bent niet ingelogd. Log in om te spelen.</p>";
     return;
   }
 
   const player = JSON.parse(playerData);
-  console.log("Ingelogde speler:", player);
+  const icons = [
+    "grape.png", "cherries.png", "watermelon.png",
+    "pineapple.png", "bananas.png", "strawberry.png"
+  ];
 
-  // ✅ Game instellingen
-  const levels = [
-    6, 8, 10, 12, 14, 16, 18, 20, 22, 24
-  ]; // aantal kaarten per level
+  const levels = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
   let currentLevel = 0;
   let totalScore = 0;
-  let timer = null;
-  let startTime = null;
+  let flipped = [];
+  let matched = 0;
+  let timerInterval;
+  let timeLimit = 120;
+  let timeLeft = timeLimit;
 
-  const levelIndicator = document.createElement("div");
-  levelIndicator.id = "level-indicator";
-  root.appendChild(levelIndicator);
+  const gameContainer = document.createElement("div");
+  gameContainer.className = "game-inner";
+  root.appendChild(gameContainer);
+
+  const levelHeader = document.createElement("h2");
+  gameContainer.appendChild(levelHeader);
 
   const progressBar = document.createElement("div");
   progressBar.className = "progress-bar";
   progressBar.innerHTML = `<div id="progress-fill" class="progress-fill"></div>`;
-  root.appendChild(progressBar);
+  gameContainer.appendChild(progressBar);
 
-  const gameBoard = document.createElement("div");
-  gameBoard.className = "game-board";
-  root.appendChild(gameBoard);
+  const board = document.createElement("div");
+  board.className = "game-board";
+  gameContainer.appendChild(board);
 
-  function startLevel(level) {
-    const numCards = levels[level];
-    const pairs = numCards / 2;
-    const symbols = [];
-    for (let i = 0; i < pairs; i++) {
-      const emoji = String.fromCodePoint(0x1F600 + i);
-      symbols.push(emoji, emoji);
-    }
-
-    symbols.sort(() => 0.5 - Math.random());
-
-    gameBoard.innerHTML = "";
-    symbols.forEach(symbol => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="front"></div>
-        <div class="back">${symbol}</div>
-      `;
-      card.dataset.symbol = symbol;
-      card.addEventListener("click", onCardClick);
-      gameBoard.appendChild(card);
-    });
-
-    document.getElementById("level-indicator").textContent = `Level ${level + 1} van ${levels.length}`;
-
-    startTime = Date.now();
-    timer = setInterval(updateProgressBar, 100);
+  function createCard(src) {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.innerHTML = `
+      <div class="front"><img src="https://gamingmemoryprelander.vercel.app/assets/img/card-icon.png" alt=""></div>
+      <div class="back"><img src="https://gamingmemoryprelander.vercel.app/assets/img/${src}" alt=""></div>
+    `;
+    card.addEventListener("click", () => flipCard(card, src));
+    return card;
   }
 
-  function updateProgressBar() {
-    const elapsed = (Date.now() - startTime) / 1000;
-    const progress = Math.min(100, (elapsed / 120) * 100);
-    document.getElementById("progress-fill").style.width = `${100 - progress}%`;
-    if (elapsed > 120) {
-      clearInterval(timer);
-      alert("Tijd is om!");
-    }
-  }
-
-  let flippedCards = [];
-
-  function onCardClick(e) {
-    const card = e.currentTarget;
-    if (card.classList.contains("flip") || flippedCards.length === 2) return;
-
+  function flipCard(card, src) {
+    if (card.classList.contains("flip") || flipped.length === 2) return;
     card.classList.add("flip");
-    flippedCards.push(card);
+    flipped.push({ card, src });
 
-    if (flippedCards.length === 2) {
-      const [a, b] = flippedCards;
-      if (a.dataset.symbol === b.dataset.symbol) {
-        flippedCards = [];
-        if (document.querySelectorAll(".card:not(.flip)").length === 0) {
-          levelComplete();
-        }
+    if (flipped.length === 2) {
+      const [a, b] = flipped;
+      if (a.src === b.src) {
+        matched++;
+        flipped = [];
+        if (matched === levels[currentLevel] / 2) handleWin();
       } else {
         setTimeout(() => {
-          a.classList.remove("flip");
-          b.classList.remove("flip");
-          flippedCards = [];
-        }, 1000);
+          a.card.classList.remove("flip");
+          b.card.classList.remove("flip");
+          flipped = [];
+        }, 900);
       }
     }
   }
 
-  async function levelComplete() {
-    clearInterval(timer);
-    const elapsed = (Date.now() - startTime) / 1000;
-    const score = Math.max(1000, Math.round(10000 - elapsed * 75));
+  function handleWin() {
+    clearInterval(timerInterval);
+    const timeUsed = timeLimit - timeLeft;
+    const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
     totalScore += score;
 
-    console.log(`Level ${currentLevel + 1} voltooid. Tijd: ${elapsed}s. Score: ${score}.`);
+    saveScore(levels[currentLevel], score, timeUsed);
 
-    // ✅ Score opslaan in Directus
+    currentLevel++;
+    if (currentLevel < levels.length) {
+      setTimeout(startGame, 1000);
+    } else {
+      board.innerHTML = `<h3>🎉 Je totale score is ${totalScore} punten! 🎉</h3>`;
+    }
+  }
+
+  async function saveScore(levelSize, score, time) {
     try {
       await fetch("https://cms.core.909play.com/items/scores", {
         method: "POST",
@@ -119,23 +96,54 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({
           player: player.id,
           level: currentLevel + 1,
-          time_taken: Math.round(elapsed),
-          score,
+          time_taken: time,
+          score: score,
           completed_at: new Date().toISOString()
         })
       });
     } catch (err) {
       console.error("Fout bij score opslaan:", err);
     }
-
-    currentLevel++;
-    if (currentLevel < levels.length) {
-      startLevel(currentLevel);
-    } else {
-      gameBoard.innerHTML = `<p style="font-size: 2rem; text-align: center;">Gefeliciteerd! Je totale score is ${totalScore} punten.</p>`;
-    }
   }
 
-  // ✅ Start game
-  startLevel(currentLevel);
+  function updateProgress() {
+    const fill = document.getElementById("progress-fill");
+    const percentage = (timeLeft / timeLimit) * 100;
+    fill.style.width = `${percentage}%`;
+  }
+
+  function startGame() {
+    board.innerHTML = "";
+    flipped = [];
+    matched = 0;
+    timeLeft = timeLimit;
+    updateProgress();
+
+    const count = levels[currentLevel];
+    const cards = shuffle([...icons, ...icons, ...icons, ...icons]).slice(0, count / 2);
+    const gameIcons = shuffle([...cards, ...cards]);
+
+    levelHeader.textContent = `Level ${currentLevel + 1} – ${count} kaarten`;
+
+    gameIcons.forEach(icon => {
+      board.appendChild(createCard(icon));
+    });
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateProgress();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert("⏱️ Tijd is om!");
+        handleWin();
+      }
+    }, 1000);
+  }
+
+  function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+  }
+
+  // Start de game
+  startGame();
 });
