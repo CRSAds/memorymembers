@@ -1,69 +1,149 @@
-// memory10.js
-
-const images = [
-  "bananas.png",
-  "card-icon.png",
-  "cherries.png",
-  "grape.png",
-  "pineapple.png",
-  "strawberry.png",
-  "watermelon.png"
-];
-
-let level = 1;
-const maxLevel = 10;
-const levelIndicator = document.getElementById("level-indicator");
-const progressFill = document.getElementById("progress-fill");
-const gameBoard = document.getElementById("game-board");
-
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
-
-function updateLevelDisplay() {
-  levelIndicator.textContent = `Level ${level} van ${maxLevel}`;
-}
-
-function updateProgress(percent) {
-  progressFill.style.width = `${percent}%`;
-}
-
-function createCard(image) {
-  const card = document.createElement("div");
-  card.className = "card";
-  card.innerHTML = `
-    <div class="front">
-      <img src="/assets/img/card-icon.png" alt="kaart achterkant">
-    </div>
-    <div class="back">
-      <img src="/assets/img/${image}" alt="kaart">
-    </div>
-  `;
-  return card;
-}
-
-function setupLevel() {
-  updateLevelDisplay();
-  updateProgress((level - 1) / (maxLevel - 1) * 100);
-
-  const numCards = Math.min(6 + (level - 1) * 2, 20);
-  const selectedImages = shuffle(images).slice(0, numCards / 2);
-  const cardImages = shuffle([...selectedImages, ...selectedImages]);
-
-  gameBoard.innerHTML = "";
-  cardImages.forEach(image => {
-    const card = createCard(image);
-    gameBoard.appendChild(card);
-  });
-
-  // Extra: hier start je eventueel de timer
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (!localStorage.getItem("access_token")) {
-    document.body.innerHTML = '<p style="text-align:center; padding:2em; font-size:1.5em">Je bent niet ingelogd. Log in om te spelen.</p>';
+document.addEventListener("DOMContentLoaded", function () {
+  const playerData = localStorage.getItem("player");
+  const root = document.getElementById("game-root");
+  if (!root || !playerData) {
+    document.body.innerHTML = "<p style='text-align:center;margin-top:40vh;font-size:24px'>Je bent niet ingelogd. Log in om te spelen.</p>";
     return;
   }
 
-  setupLevel();
+  const player = JSON.parse(playerData);
+  const icons = [
+    "bananas.png", "berries.png", "cherries.png", "coconut.png",
+    "grape.png", "grapes.png", "orange.png", "pineapple.png",
+    "strawberry.png", "watermelon.png"
+  ];
+
+  const levels = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
+  let currentLevel = 0;
+  let totalScore = 0;
+  let flipped = [];
+  let matched = 0;
+  let timerInterval;
+  let timeLimit = 120;
+  let timeLeft = timeLimit;
+
+  const gameContainer = document.createElement("div");
+  gameContainer.className = "game-inner";
+  root.appendChild(gameContainer);
+
+  const levelHeader = document.createElement("h2");
+  gameContainer.appendChild(levelHeader);
+
+  const progressBar = document.createElement("div");
+  progressBar.className = "progress-bar";
+  progressBar.innerHTML = `<div id="progress-fill" class="progress-fill"></div>`;
+  gameContainer.appendChild(progressBar);
+
+  const board = document.createElement("div");
+  board.className = "game-board";
+  gameContainer.appendChild(board);
+
+  function createCard(src) {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.innerHTML = `
+      <div class="front"><img src="https://memorymembers.vercel.app/assets/img/card-icon.png" alt=""></div>
+      <div class="back"><img src="https://memorymembers.vercel.app/assets/img/${src}" alt=""></div>
+    `;
+    card.addEventListener("click", () => flipCard(card, src));
+    return card;
+  }
+
+  function flipCard(card, src) {
+    if (card.classList.contains("flip") || flipped.length === 2) return;
+    card.classList.add("flip");
+    flipped.push({ card, src });
+
+    if (flipped.length === 2) {
+      const [a, b] = flipped;
+      if (a.src === b.src) {
+        matched++;
+        flipped = [];
+        if (matched === levels[currentLevel] / 2) handleWin();
+      } else {
+        setTimeout(() => {
+          a.card.classList.remove("flip");
+          b.card.classList.remove("flip");
+          flipped = [];
+        }, 900);
+      }
+    }
+  }
+
+  function handleWin() {
+    clearInterval(timerInterval);
+    const timeUsed = timeLimit - timeLeft;
+    const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
+    totalScore += score;
+    saveScore(levels[currentLevel], score, timeUsed);
+
+    currentLevel++;
+    if (currentLevel < levels.length) {
+      setTimeout(startGame, 1000);
+    } else {
+      board.innerHTML = `<h3>🎉 Je totale score is ${totalScore} punten! 🎉</h3>`;
+    }
+  }
+
+  async function saveScore(levelSize, score, time) {
+    try {
+      await fetch("https://cms.core.909play.com/items/scores", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+        },
+        body: JSON.stringify({
+          player: player.id,
+          level: currentLevel + 1,
+          time_taken: time,
+          score: score,
+          completed_at: new Date().toISOString()
+        })
+      });
+    } catch (err) {
+      console.error("Fout bij score opslaan:", err);
+    }
+  }
+
+  function updateProgress() {
+    const fill = document.getElementById("progress-fill");
+    const percentage = (timeLeft / timeLimit) * 100;
+    fill.style.width = `${percentage}%`;
+  }
+
+  function startGame() {
+    board.innerHTML = "";
+    flipped = [];
+    matched = 0;
+    timeLeft = timeLimit;
+    updateProgress();
+
+    const count = levels[currentLevel];
+    const pairs = count / 2;
+    const selectedIcons = shuffle(icons).slice(0, pairs);
+    const gameIcons = shuffle([...selectedIcons, ...selectedIcons]);
+
+    levelHeader.textContent = `Level ${currentLevel + 1} – ${count} kaarten`;
+
+    gameIcons.forEach(icon => {
+      board.appendChild(createCard(icon));
+    });
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateProgress();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert("⏱️ Tijd is om!");
+        handleWin();
+      }
+    }, 1000);
+  }
+
+  function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+  }
+
+  startGame();
 });
