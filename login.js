@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       console.log("Welkom terug, " + result.user.username + "!");
-      window.location.href = "/memorygamespelen";
+      window.location.href = "/memorygamespelen?token=" + encodeURIComponent(result.data.access_token);
     } catch (err) {
       console.error("Fout:", err);
     }
