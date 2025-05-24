@@ -18,15 +18,14 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = await response.json();
 
       if (!response.ok) {
-        alert(result.message || "Inloggen mislukt.");
+        console.warn("Login mislukt:", result.message || "Onbekende fout.");
         return;
       }
 
-      alert("Welkom terug, " + result.user.username + "!");
+      console.log("Welkom terug, " + result.user.username + "!");
       window.location.href = "/memorygamespelen";
     } catch (err) {
       console.error("Fout:", err);
-      alert("Kon niet inloggen. Probeer opnieuw.");
     }
   });
 });
