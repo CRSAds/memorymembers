@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       alert("Welkom terug, " + result.user.username + "!");
-      window.location.href = "/memorymembers/level1"; // Pas dit aan naar jouw spelpagina
+      window.location.href = `${window.location.origin}/memorygamespelen`;
     } catch (err) {
       console.error("Fout:", err);
       alert("Kon niet inloggen. Probeer opnieuw.");
