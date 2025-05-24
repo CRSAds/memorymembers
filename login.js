@@ -23,16 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      if (!result.access_token) {
-        console.warn("⚠️ Geen toegangstoken ontvangen:", result);
-        return;
-      }
-
-      localStorage.setItem("access_token", result.access_token);
-      localStorage.setItem("user_id", result.user.id);
-      localStorage.setItem("username", result.user.username);
-
+      // ✅ Save player to localStorage
+      localStorage.setItem("player", JSON.stringify(result.user));
       window.location.href = "/memorygamespelen";
+
     } catch (err) {
       console.error("Fout:", err);
     }
