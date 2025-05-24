@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer aEH-mlGi96opyIbU-sA-a_L30TZWoCpl" // <<< JOUW TOKEN
+        "Authorization": "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u" // <<< JOUW TOKEN
       },
       body: JSON.stringify({ username, email, password })
     });
