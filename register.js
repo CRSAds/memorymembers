@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (response.ok) {
         alert("Account succesvol aangemaakt!");
-        window.location.href = `${window.location.origin}/memorygamespelen`;
+        window.location.href = "/memorygamespelen";
       } else {
         console.error(result);
         alert("Fout bij registreren: " + (result.errors?.[0]?.message || result.message || "Onbekende fout"));
