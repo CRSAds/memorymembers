@@ -16,14 +16,20 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const result = await response.json();
+      console.log("Login respons:", result);
 
       if (!response.ok) {
         console.warn("Login mislukt:", result.message || "Onbekende fout.");
         return;
       }
 
-      console.log("Welkom terug, " + result.user.username + "!");
-      window.location.href = "/memorygamespelen?token=" + encodeURIComponent(result.data.access_token);
+      // ✅ Token ophalen uit response
+      if (result.data && result.data.access_token) {
+        const token = encodeURIComponent(result.data.access_token);
+        window.location.href = "/memorygamespelen?token=" + token;
+      } else {
+        console.warn("Geen toegangstoken ontvangen:", result);
+      }
     } catch (err) {
       console.error("Fout:", err);
     }
