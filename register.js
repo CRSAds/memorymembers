@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const password = form.password.value.trim();
 
     if (!username || !email || !password) {
-      alert("Vul alle velden in.");
+      console.warn("Formulier onvolledig ingevuld.");
       return;
     }
 
@@ -26,15 +26,13 @@ document.addEventListener("DOMContentLoaded", function () {
       const result = await response.json();
 
       if (response.ok) {
-        alert("Account succesvol aangemaakt!");
+        console.log("Account succesvol aangemaakt!");
         window.location.href = "/memorygamespelen";
       } else {
-        console.error(result);
-        alert("Fout bij registreren: " + (result.errors?.[0]?.message || result.message || "Onbekende fout"));
+        console.error("Fout bij registreren:", result.errors?.[0]?.message || result.message || "Onbekende fout");
       }
     } catch (err) {
-      console.error(err);
-      alert("Verbinding mislukt.");
+      console.error("Verbinding mislukt:", err);
     }
   });
 });
