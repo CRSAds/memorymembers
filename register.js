@@ -27,19 +27,13 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("Registratie respons:", result);
 
       if (!response.ok) {
-        console.error("Fout bij registreren:", result.errors?.[0]?.message || result.message || "Onbekende fout");
+        console.error("Fout bij registreren:", result);
         return;
       }
 
-      // ✅ Token ophalen uit response
-      if (result.data && result.data.access_token) {
-        const token = encodeURIComponent(result.data.access_token);
-        window.location.href = "/memorygamespelen?token=" + token;
-      } else {
-        console.warn("Geen toegangstoken ontvangen bij registratie:", result);
-      }
+      window.location.href = "/memorygamespelen";
     } catch (err) {
-      console.error("Verbinding mislukt:", err);
+      console.error("Fout bij registreren:", err);
     }
   });
 });
