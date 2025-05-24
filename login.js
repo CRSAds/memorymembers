@@ -9,35 +9,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const password = form.password.value.trim();
 
     try {
-      const res = await fetch("https://cms.core.909play.com/auth/login", {
+      const response = await fetch("https://memorymembers.vercel.app/api/login-player", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
 
-      const data = await res.json();
+      const result = await response.json();
 
-      if (res.ok) {
-        localStorage.setItem("access_token", data.data.access_token);
-        localStorage.setItem("refresh_token", data.data.refresh_token);
-        localStorage.setItem("expires", data.data.expires);
-
-        // eventueel: haal gebruiker op via /users/me
-        const profile = await fetch("https://cms.core.909play.com/users/me", {
-          headers: {
-            Authorization: `Bearer ${data.data.access_token}`
-          }
-        });
-        const user = await profile.json();
-        localStorage.setItem("user_id", user.data.id);
-
-        window.location.href = "/memoryspel";
-      } else {
-        alert("Inloggen mislukt: " + (data.errors?.[0]?.message || "Onbekende fout"));
+      if (!response.ok) {
+        alert(result.message || "Inloggen mislukt.");
+        return;
       }
+
+      alert("Welkom terug, " + result.user.username + "!");
+      window.location.href = "/memorymembers/level1"; // Pas dit aan naar jouw spelpagina
     } catch (err) {
-      console.error("Login fout:", err);
-      alert("Verbinding mislukt. Probeer opnieuw.");
+      console.error("Fout:", err);
+      alert("Kon niet inloggen. Probeer opnieuw.");
     }
   });
 });
