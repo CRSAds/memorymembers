@@ -1,4 +1,14 @@
 export default async function handler(req, res) {
+  // ✅ CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // ✅ Preflight check
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -15,26 +25,21 @@ export default async function handler(req, res) {
     const result = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ message: result.errors?.[0]?.message || result.message });
+      return res.status(response.status).json({
+        message: result.errors?.[0]?.message || "Inloggen mislukt."
+      });
     }
 
-    const { access_token, refresh_token, expires } = result.data;
-
-    // Gebruik token om gebruikersprofiel op te halen
-    const profileRes = await fetch("https://cms.core.909play.com/users/me", {
-      headers: {
-        Authorization: `Bearer ${access_token}`
-      }
-    });
-
-    const profile = await profileRes.json();
-
     return res.status(200).json({
-      data: { access_token, refresh_token, expires },
-      user: profile.data
+      message: "Login succesvol",
+      access_token: result.data.access_token,
+      refresh_token: result.data.refresh_token,
+      expires: result.data.expires,
+      user: result.data.user
     });
+
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Interne serverfout" });
   }
 }
