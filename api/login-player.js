@@ -1,13 +1,4 @@
 export default async function handler(req, res) {
-  // ✅ CORS headers toevoegen
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end(); // Preflight OK
-  }
-
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -15,23 +6,35 @@ export default async function handler(req, res) {
   const { email, password } = req.body;
 
   try {
-    const directusRes = await fetch("https://cms.core.909play.com/items/players", {
-      method: "GET",
+    const response = await fetch("https://cms.core.909play.com/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({ message: result.errors?.[0]?.message || result.message });
+    }
+
+    const { access_token, refresh_token, expires } = result.data;
+
+    // Gebruik token om gebruikersprofiel op te halen
+    const profileRes = await fetch("https://cms.core.909play.com/users/me", {
       headers: {
-        "Authorization": "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+        Authorization: `Bearer ${access_token}`
       }
     });
 
-    const data = await directusRes.json();
-    const match = data.data.find(p => p.email === email && p.password === password);
+    const profile = await profileRes.json();
 
-    if (!match) {
-      return res.status(401).json({ message: "Onjuiste inloggegevens" });
-    }
-
-    return res.status(200).json({ message: "Login succesvol", user: match });
+    return res.status(200).json({
+      data: { access_token, refresh_token, expires },
+      user: profile.data
+    });
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({ message: "Serverfout" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 }
