@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const response = await fetch("https://memorymembers.vercel.app/register-player", {
+      const response = await fetch("https://memorymembers.vercel.app/api/register-player", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
