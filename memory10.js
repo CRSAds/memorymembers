@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const res = await fetch("https://memorymembers.vercel.app/api/top-players");
+      const res = await fetch("https://memorymembers.vercel.app/api/get-top-players");
       const data = await res.json();
       const top = document.createElement("div");
       top.innerHTML = `<h4>🏅 Top 10 Spelers</h4>`;
