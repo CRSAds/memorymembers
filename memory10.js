@@ -163,11 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
     summary.appendChild(totaal);
 
     try {
-      const res = await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
-        headers: {
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-        }
-      });
+      const res = await fetch(`https://memorymembers.vercel.app/api/get-player?id=${player.id}`);
       const data = await res.json();
       const best = data.data?.total_score || 0;
       const bestp = document.createElement("p");
@@ -178,11 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     try {
-      const res = await fetch("https://cms.core.909play.com/items/players?sort=-total_score&limit=10", {
-        headers: {
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-        }
-      });
+      const res = await fetch("https://memorymembers.vercel.app/api/top-players");
       const data = await res.json();
       const top = document.createElement("div");
       top.innerHTML = `<h4>🏅 Top 10 Spelers</h4>`;
