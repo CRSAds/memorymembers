@@ -112,30 +112,22 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  async function updateHighscoreIfNeeded(score) {
-    try {
-      const res = await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
-        headers: {
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-        }
-      });
-      const data = await res.json();
-      const currentHigh = data.data?.total_score || 0;
-
-      if (score > currentHigh) {
-        await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-          },
-          body: JSON.stringify({ total_score: score })
-        });
-      }
-    } catch (err) {
-      console.error("Highscore bijwerken mislukt:", err);
-    }
+async function updateHighscoreIfNeeded(score) {
+  try {
+    await fetch("https://memorymembers.vercel.app/api/update-highscore", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        playerId: player.id,
+        score: score
+      })
+    });
+  } catch (err) {
+    console.error("Highscore bijwerken mislukt:", err);
   }
+}
 
   function updateProgress() {
     const fill = document.getElementById("progress-fill");
