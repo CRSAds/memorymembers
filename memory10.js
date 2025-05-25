@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let timerInterval;
   let timeLimit = 120;
   let timeLeft = timeLimit;
-  let levelScores = [];
 
   const gameContainer = document.createElement("div");
   gameContainer.className = "game-inner";
@@ -76,21 +75,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeUsed = timeLimit - timeLeft;
     const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
     totalScore += score;
-    levelScores.push({ level: currentLevel + 1, score });
 
     saveScore(levels[currentLevel], score, timeUsed);
+    updateHighscoreIfNeeded(totalScore);
 
-    const cards = document.querySelectorAll(".card");
-    cards.forEach(card => card.classList.add("fade-out"));
-
-    setTimeout(() => {
-      currentLevel++;
-      if (currentLevel < levels.length) {
+    currentLevel++;
+    if (currentLevel < levels.length) {
+      board.classList.add("fade-out");
+      setTimeout(() => {
+        board.classList.remove("fade-out");
         startGame();
-      } else {
-        showSummary();
-      }
-    }, 1000);
+      }, 500);
+    } else {
+      levelHeader.remove();
+      progressBar.remove();
+      board.innerHTML = `<h3>🎉 Je totale score is ${totalScore} punten! 🎉</h3>`;
+    }
   }
 
   async function saveScore(levelSize, score, time) {
@@ -98,15 +98,13 @@ document.addEventListener("DOMContentLoaded", function () {
       await fetch("https://memorymembers.vercel.app/api/save-score", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           player: player.id,
           level: currentLevel + 1,
           time_taken: time,
-          score: score,
-          completed_at: new Date().toISOString()
+          score: score
         })
       });
     } catch (err) {
@@ -114,35 +112,35 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  async function updateHighscoreIfNeeded(score) {
+    try {
+      const res = await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
+        headers: {
+          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+        }
+      });
+      const data = await res.json();
+      const currentHigh = data.data?.total_score || 0;
+
+      if (score > currentHigh) {
+        await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+          },
+          body: JSON.stringify({ total_score: score })
+        });
+      }
+    } catch (err) {
+      console.error("Highscore bijwerken mislukt:", err);
+    }
+  }
+
   function updateProgress() {
     const fill = document.getElementById("progress-fill");
     const percentage = (timeLeft / timeLimit) * 100;
     fill.style.width = `${percentage}%`;
-  }
-
-  function showSummary() {
-    board.innerHTML = "";
-    const summary = document.createElement("div");
-    summary.innerHTML = `<h3>🎉 Je scores:</h3>`;
-
-    const ul = document.createElement("ul");
-    levelScores.forEach(({ level, score }) => {
-      const li = document.createElement("li");
-      li.textContent = `Level ${level}: ${score} punten`;
-      ul.appendChild(li);
-    });
-
-    const total = document.createElement("p");
-    total.innerHTML = `<strong>Totaal: ${totalScore} punten</strong>`;
-
-    const retry = document.createElement("button");
-    retry.textContent = "Speel opnieuw";
-    retry.addEventListener("click", () => location.reload());
-
-    summary.appendChild(ul);
-    summary.appendChild(total);
-    summary.appendChild(retry);
-    board.appendChild(summary);
   }
 
   function startGame() {
@@ -157,10 +155,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedIcons = shuffle(icons).slice(0, pairs);
     const gameIcons = shuffle([...selectedIcons, ...selectedIcons]);
 
-    levelHeader.textContent = `Level ${currentLevel + 1} van 10`;
+    levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
 
-    const columns = count === 6 ? 3 : count === 12 ? 3 : 4;
-    board.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    board.style.gridTemplateColumns = count === 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
 
     gameIcons.forEach(icon => {
       board.appendChild(createCard(icon));
@@ -171,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
       updateProgress();
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        handleWin();
+        handleWin(); // doorgaan zonder melding
       }
     }, 1000);
   }
