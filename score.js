@@ -1,11 +1,16 @@
 document.addEventListener("DOMContentLoaded", async function () {
+  const root = document.getElementById("score-root");
+  if (!root) {
+    console.warn("score-root niet gevonden. Script afgebroken.");
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   const playerId = params.get("player");
   const score = parseInt(params.get("score"), 10) || 0;
-  const root = document.getElementById("score-root");
 
-  if (!playerId || !root) {
-    root.innerHTML = "<p style='text-align:center'>Geen scoregegevens gevonden.</p>";
+  if (!playerId) {
+    root.innerHTML = "<p style='text-align:center'>❌ Geen speler ID gevonden in URL.</p>";
     return;
   }
 
@@ -16,6 +21,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     <p><strong>Jouw score in deze sessie:</strong> ${score} punten</p>
   `;
 
+  // 🔸 Persoonlijke highscore ophalen
   try {
     const res = await fetch(`/api/get-player?id=${playerId}`);
     const data = await res.json();
@@ -23,10 +29,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const bestp = document.createElement("p");
     bestp.innerHTML = `🏆 <strong>Hoogste score ooit:</strong> ${best} punten`;
     summary.appendChild(bestp);
-  } catch {
+  } catch (err) {
+    console.error("Fout bij ophalen van persoonlijke score:", err);
     summary.innerHTML += "<p>❌ Kon persoonlijke highscore niet ophalen</p>";
   }
 
+  // 🔸 Top 10 ophalen
   try {
     const res = await fetch("/api/get-top-players");
     const data = await res.json();
@@ -45,15 +53,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     table.appendChild(body);
     top.appendChild(table);
     summary.appendChild(top);
-  } catch {
+  } catch (err) {
+    console.error("Fout bij ophalen van top 10:", err);
     summary.innerHTML += "<p>❌ Kon top 10 niet ophalen</p>";
   }
 
+  // 🔸 Retry knop
   const retry = document.createElement("button");
   retry.textContent = "🔁 Speel opnieuw";
   retry.className = "cta-button";
   retry.onclick = () => window.location.href = "/memorygamespelen";
   summary.appendChild(retry);
 
+  // 🔸 Injecteren in DOM
+  root.innerHTML = "";
   root.appendChild(summary);
 });
