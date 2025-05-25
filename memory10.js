@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "strawberry.png", "watermelon.png"
   ];
 
-  const levels = [6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
+  const levels = [6, 6, 6, 12, 12, 12, 16, 16, 16, 16];
   let currentLevel = 0;
   let totalScore = 0;
   let flipped = [];
@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let timerInterval;
   let timeLimit = 120;
   let timeLeft = timeLimit;
+  let levelScores = [];
 
   const gameContainer = document.createElement("div");
   gameContainer.className = "game-inner";
@@ -75,14 +76,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const timeUsed = timeLimit - timeLeft;
     const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
     totalScore += score;
+    levelScores.push({ level: currentLevel + 1, score });
+
     saveScore(levels[currentLevel], score, timeUsed);
 
-    currentLevel++;
-    if (currentLevel < levels.length) {
-      setTimeout(startGame, 1000);
-    } else {
-      board.innerHTML = `<h3>🎉 Je totale score is ${totalScore} punten! 🎉</h3>`;
-    }
+    const cards = document.querySelectorAll(".card");
+    cards.forEach(card => card.classList.add("fade-out"));
+
+    setTimeout(() => {
+      currentLevel++;
+      if (currentLevel < levels.length) {
+        startGame();
+      } else {
+        showSummary();
+      }
+    }, 1000);
   }
 
   async function saveScore(levelSize, score, time) {
@@ -112,6 +120,31 @@ document.addEventListener("DOMContentLoaded", function () {
     fill.style.width = `${percentage}%`;
   }
 
+  function showSummary() {
+    board.innerHTML = "";
+    const summary = document.createElement("div");
+    summary.innerHTML = `<h3>🎉 Je scores:</h3>`;
+
+    const ul = document.createElement("ul");
+    levelScores.forEach(({ level, score }) => {
+      const li = document.createElement("li");
+      li.textContent = `Level ${level}: ${score} punten`;
+      ul.appendChild(li);
+    });
+
+    const total = document.createElement("p");
+    total.innerHTML = `<strong>Totaal: ${totalScore} punten</strong>`;
+
+    const retry = document.createElement("button");
+    retry.textContent = "Speel opnieuw";
+    retry.addEventListener("click", () => location.reload());
+
+    summary.appendChild(ul);
+    summary.appendChild(total);
+    summary.appendChild(retry);
+    board.appendChild(summary);
+  }
+
   function startGame() {
     board.innerHTML = "";
     flipped = [];
@@ -124,7 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedIcons = shuffle(icons).slice(0, pairs);
     const gameIcons = shuffle([...selectedIcons, ...selectedIcons]);
 
-    levelHeader.textContent = `Level ${currentLevel + 1} – ${count} kaarten`;
+    levelHeader.textContent = `Level ${currentLevel + 1} van 10`;
+
+    const columns = count === 6 ? 3 : count === 12 ? 3 : 4;
+    board.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
 
     gameIcons.forEach(icon => {
       board.appendChild(createCard(icon));
@@ -135,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function () {
       updateProgress();
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        alert("⏱️ Tijd is om!");
         handleWin();
       }
     }, 1000);
