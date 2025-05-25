@@ -79,7 +79,6 @@ document.addEventListener("DOMContentLoaded", function () {
     levelScores.push({ level: currentLevel + 1, score });
 
     saveScore(levels[currentLevel], score, timeUsed);
-    updateHighscoreIfNeeded(totalScore);
 
     currentLevel++;
     if (currentLevel < levels.length) {
@@ -91,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       levelHeader.remove();
       progressBar.remove();
+      updateHighscoreIfNeeded(totalScore);
       showSummary();
     }
   }
@@ -133,6 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateProgress() {
     const fill = document.getElementById("progress-fill");
+    if (!fill) return;
     const percentage = (timeLeft / timeLimit) * 100;
     fill.style.width = `${percentage}%`;
   }
@@ -161,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function () {
     totaal.innerHTML = `<strong>Totaal deze sessie: ${totalScore} punten</strong>`;
     summary.appendChild(totaal);
 
-    // Persoonlijke highscore ophalen
     try {
       const res = await fetch(`https://cms.core.909play.com/items/players/${player.id}`, {
         headers: {
@@ -177,7 +177,6 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Kon hoogste score niet ophalen", err);
     }
 
-    // Top 10 ophalen
     try {
       const res = await fetch("https://cms.core.909play.com/items/players?sort=-total_score&limit=10", {
         headers: {
@@ -224,7 +223,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const gameIcons = shuffle([...selectedIcons, ...selectedIcons]);
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
-
     board.style.gridTemplateColumns = count === 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
 
     gameIcons.forEach(icon => {
@@ -246,15 +244,15 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   const skipButton = document.createElement("button");
-skipButton.textContent = "⏭️ Sla spel over en toon scores";
-skipButton.className = "cta-button";
-skipButton.style.margin = "16px auto";
-skipButton.onclick = () => {
-  levelHeader.remove();
-  progressBar.remove();
-  showSummary();
-};
-gameContainer.appendChild(skipButton);
-  
+  skipButton.textContent = "⏭️ Sla spel over en toon scores";
+  skipButton.className = "cta-button";
+  skipButton.style.margin = "16px auto";
+  skipButton.onclick = () => {
+    levelHeader.remove();
+    progressBar.remove();
+    showSummary();
+  };
+  gameContainer.appendChild(skipButton);
+
   startGame();
 });
