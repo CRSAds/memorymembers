@@ -1,8 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const playerData = localStorage.getItem("player");
-  const root = document.getElementById("game-root");
-  if (!root || !playerData) {
-    document.body.innerHTML = "<p style='text-align:center;margin-top:40vh;font-size:24px'>Je bent niet ingelogd. Log in om te spelen.</p>";
+  if (!playerData) {
+    window.location.href = "/"; // terug naar login/registratie
     return;
   }
 
@@ -19,10 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let flipped = [];
   let matched = 0;
   let timerInterval;
-  let timeLimit = 120;
-  let timeLeft = timeLimit;
+  let timeLeft = 120;
   const levelScores = [];
 
+  const root = document.getElementById("game-root");
   const gameContainer = document.createElement("div");
   gameContainer.className = "game-inner";
   root.appendChild(gameContainer);
@@ -38,6 +37,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const board = document.createElement("div");
   board.className = "game-board";
   gameContainer.appendChild(board);
+
+  const skip = document.createElement("button");
+  skip.textContent = "⏭️ Sla spel over en toon scores";
+  skip.className = "cta-button";
+  skip.style.margin = "16px auto";
+  skip.onclick = () => {
+    window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
+  };
+  gameContainer.appendChild(skip);
 
   function createCard(src) {
     const card = document.createElement("div");
@@ -66,19 +74,19 @@ document.addEventListener("DOMContentLoaded", function () {
           a.card.classList.remove("flip");
           b.card.classList.remove("flip");
           flipped = [];
-        }, 900);
+        }, 800);
       }
     }
   }
 
   function handleWin() {
     clearInterval(timerInterval);
-    const timeUsed = timeLimit - timeLeft;
+    const timeUsed = 120 - timeLeft;
     const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
     totalScore += score;
     levelScores.push({ level: currentLevel + 1, score });
 
-    saveScore(levels[currentLevel], score, timeUsed);
+    saveScore(score, timeUsed);
 
     currentLevel++;
     if (currentLevel < levels.length) {
@@ -86,22 +94,18 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(() => {
         board.classList.remove("fade-out");
         startGame();
-      }, 500);
+      }, 600);
     } else {
-      levelHeader.remove();
-      progressBar.remove();
       updateHighscoreIfNeeded(totalScore);
-      showSummary();
+      window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
     }
   }
 
-  async function saveScore(levelSize, score, time) {
+  async function saveScore(score, time) {
     try {
-      await fetch("https://memorymembers.vercel.app/api/save-score", {
+      await fetch("/api/save-score", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           player: player.id,
           level: currentLevel,
@@ -116,15 +120,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function updateHighscoreIfNeeded(score) {
     try {
-      await fetch("https://memorymembers.vercel.app/api/update-highscore", {
+      await fetch("/api/update-highscore", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          playerId: player.id,
-          score: score
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, score })
       });
     } catch (err) {
       console.error("Highscore bijwerken mislukt:", err);
@@ -133,93 +132,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function updateProgress() {
     const fill = document.getElementById("progress-fill");
-    if (!fill) return;
-    const percentage = (timeLeft / timeLimit) * 100;
-    fill.style.width = `${percentage}%`;
-  }
-
-  async function showSummary() {
-    board.innerHTML = "";
-    const summary = document.createElement("div");
-    summary.className = "score-summary";
-
-    const title = document.createElement("h3");
-    title.textContent = "🎉 Scoreoverzicht";
-    summary.appendChild(title);
-
-    const table = document.createElement("table");
-    table.innerHTML = `<thead><tr><th>Level</th><th>Score</th></tr></thead>`;
-    const tbody = document.createElement("tbody");
-    levelScores.forEach(({ level, score }) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${level}</td><td>${score}</td>`;
-      tbody.appendChild(row);
-    });
-    table.appendChild(tbody);
-    summary.appendChild(table);
-
-    const totaal = document.createElement("p");
-    totaal.innerHTML = `<strong>Totaal deze sessie: ${totalScore} punten</strong>`;
-    summary.appendChild(totaal);
-
-    try {
-      const res = await fetch(`https://memorymembers.vercel.app/api/get-player?id=${player.id}`);
-      const data = await res.json();
-      const best = data.data?.total_score || 0;
-      const bestp = document.createElement("p");
-      bestp.textContent = `🏆 Jouw hoogste score ooit: ${best} punten`;
-      summary.appendChild(bestp);
-    } catch (err) {
-      console.error("Kon hoogste score niet ophalen", err);
-    }
-
-    try {
-      const res = await fetch("https://memorymembers.vercel.app/api/get-top-players");
-      const data = await res.json();
-      const top = document.createElement("div");
-      top.innerHTML = `<h4>🏅 Top 10 Spelers</h4>`;
-      const topTable = document.createElement("table");
-      topTable.innerHTML = `<thead><tr><th>#</th><th>Speler</th><th>Score</th></tr></thead>`;
-      const body = document.createElement("tbody");
-      data.data.forEach((p, i) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${i + 1}</td><td>${p.username}</td><td>${p.total_score}</td>`;
-        body.appendChild(row);
-      });
-      topTable.appendChild(body);
-      top.appendChild(topTable);
-      summary.appendChild(top);
-    } catch (err) {
-      console.error("Kon top 10 niet ophalen", err);
-    }
-
-    const retry = document.createElement("button");
-    retry.textContent = "🔁 Speel opnieuw";
-    retry.className = "cta-button";
-    retry.addEventListener("click", () => window.location.reload());
-    summary.appendChild(retry);
-
-    board.appendChild(summary);
+    if (fill) fill.style.width = `${(timeLeft / 120) * 100}%`;
   }
 
   function startGame() {
     board.innerHTML = "";
     flipped = [];
     matched = 0;
-    timeLeft = timeLimit;
+    timeLeft = 120;
     updateProgress();
 
     const count = levels[currentLevel];
     const pairs = count / 2;
-    const selectedIcons = shuffle(icons).slice(0, pairs);
-    const gameIcons = shuffle([...selectedIcons, ...selectedIcons]);
+    const selected = shuffle(icons).slice(0, pairs);
+    const cards = shuffle([...selected, ...selected]);
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
     board.style.gridTemplateColumns = count === 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
 
-    gameIcons.forEach(icon => {
-      board.appendChild(createCard(icon));
-    });
+    cards.forEach(icon => board.appendChild(createCard(icon)));
 
     timerInterval = setInterval(() => {
       timeLeft--;
@@ -234,17 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
   function shuffle(arr) {
     return arr.sort(() => Math.random() - 0.5);
   }
-
-  const skipButton = document.createElement("button");
-  skipButton.textContent = "⏭️ Sla spel over en toon scores";
-  skipButton.className = "cta-button";
-  skipButton.style.margin = "16px auto";
-  skipButton.onclick = () => {
-    levelHeader.remove();
-    progressBar.remove();
-    showSummary();
-  };
-  gameContainer.appendChild(skipButton);
 
   startGame();
 });
