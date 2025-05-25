@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function saveScore(levelSize, score, time) {
     try {
-      await fetch("https://cms.core.909play.com/items/scores", {
+      await fetch("https://memorymembers.vercel.app/api/save-score", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
