@@ -6,7 +6,6 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -14,36 +13,33 @@ export default async function handler(req, res) {
   const { email } = req.body;
 
   try {
-    let redirectUrl = "https://nl.wincadeaukaarten.com/memorymembers";
-    let metadata = {};
+    // 🔐 Genereer altijd een token
+    const token = crypto.randomUUID();
+    const validUntil = new Date();
+    validUntil.setDate(validUntil.getDate() + 7);
+
+    await fetch("https://cms.core.909play.com/items/payment_tokens", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+      },
+      body: JSON.stringify({
+        token,
+        valid_until: validUntil.toISOString()
+      })
+    });
+
+    // 📦 Metadata + redirect URL opbouwen
+    const metadata = { token };
+    let redirectUrl = `https://nl.wincadeaukaarten.com/memorymembers?token=${token}`;
 
     if (email) {
-      redirectUrl += `?email=${encodeURIComponent(email)}`;
       metadata.email = email;
-    } else {
-      // 🔐 Geen email → maak token in Directus
-      const token = crypto.randomUUID();
-      const validUntil = new Date();
-      validUntil.setDate(validUntil.getDate() + 7);
-
-      await fetch("https://cms.core.909play.com/items/payment_tokens", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-        },
-        body: JSON.stringify({
-          token,
-          valid_until: validUntil.toISOString()
-        })
-      });
-
-      // Token meesturen in redirect en metadata
-      redirectUrl += `?token=${token}`;
-      metadata.token = token;
+      redirectUrl += `&email=${encodeURIComponent(email)}`;
     }
 
-    // 💸 Aanvraag bij Mollie
+    // 💸 Mollie betaling aanmaken
     const mollieRes = await fetch("https://api.mollie.com/v2/payments", {
       method: "POST",
       headers: {
