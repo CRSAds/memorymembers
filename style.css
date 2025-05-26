@@ -238,3 +238,19 @@ body {
   font-size: 14px;
   color: #555;
 }
+
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  margin: 32px auto;
+}
+
+@media (min-width: 768px) {
+  .form-wrapper {
+    flex-direction: row;
+    gap: 48px;
+  }
+}
