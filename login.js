@@ -40,9 +40,37 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!accessDate || new Date(accessDate) < now) {
         feedbackEl.innerHTML = `
           <p>Je hebt nog geen toegang tot het spel.</p>
-          <a href="https://nl.wincadeaukaarten.com/memory-betaalpagina" class="cta-button">Betaal nu om toegang te krijgen</a>
+          <button id="start-payment" class="cta-button">Betaal nu om toegang te krijgen</button>
         `;
         feedbackEl.style.display = "block";
+
+        // 👇 Voeg kliklistener toe na render
+        setTimeout(() => {
+          const payBtn = document.getElementById("start-payment");
+          if (payBtn) {
+            payBtn.addEventListener("click", async () => {
+              try {
+                const payRes = await fetch("https://memorymembers.vercel.app/api/create-payment", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email })
+                });
+
+                const data = await payRes.json();
+                if (payRes.ok && data.paymentUrl) {
+                  window.location.href = data.paymentUrl;
+                } else {
+                  alert("Kon betaling niet starten.");
+                  console.error(data);
+                }
+              } catch (err) {
+                console.error("Fout bij starten betaling:", err);
+                alert("Kon betaling niet starten.");
+              }
+            });
+          }
+        }, 100);
+
         return;
       }
 
