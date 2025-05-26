@@ -32,7 +32,7 @@ body {
   transition: width linear;
 }
 
-/* Spelbord */
+/* Spelbord basislayout (mobiel standaard 3 kolommen) */
 .game-board {
   display: grid;
   gap: 12px;
@@ -41,14 +41,18 @@ body {
   align-items: center;
   margin: 0 auto;
   padding: 0;
-  grid-template-columns: repeat(3, minmax(80px, 1fr)); /* <-- aanpassen */
+  grid-template-columns: repeat(3, minmax(80px, 1fr));
 }
 
+/* Kolomlogica voor desktop (>= 768px) */
 @media (min-width: 768px) {
-  .game-board {
-    grid-template-columns: repeat(auto-fit, 140px); /* 140px vaste kaarten op desktop */
-    max-width: calc(140px * 4 + 36px); /* 4 kaarten + 3 keer 12px tussenruimte */
-    margin: 0 auto;
+  .game-board.level-6 {
+    grid-template-columns: repeat(3, 140px);
+  }
+
+  .game-board.level-12,
+  .game-board.level-16 {
+    grid-template-columns: repeat(4, 140px);
   }
 }
 
@@ -68,7 +72,6 @@ body {
   perspective: 1000px;
 }
 
-/* Specifieke breedte voor desktop-kaarten */
 @media (min-width: 768px) {
   .card {
     width: 140px;
