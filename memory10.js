@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const playerData = localStorage.getItem("player");
   if (!playerData) {
-    window.location.href = "/"; // terug naar login/registratie
+    window.location.href = "/";
     return;
   }
 
@@ -149,12 +149,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const cards = shuffle([...selected, ...selected]);
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
-    const isMobile = window.innerWidth < 768;
-    if (count === 6) {
-    board.style.gridTemplateColumns = "repeat(3, 1fr)";
-    } else {
-    board.style.gridTemplateColumns = "repeat(4, 1fr)";
-    }
+
+    // Reset classlist voor styling
+    board.classList.remove("level-6", "level-12", "level-16");
+    board.classList.add(`level-${count}`);
 
     cards.forEach(icon => board.appendChild(createCard(icon)));
 
