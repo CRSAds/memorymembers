@@ -8,52 +8,40 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" });
 
-  const { email, password, username, token } = req.body;
-
+  const { email, password, username } = req.body;
   if (!email || !password || !username) {
-    return res.status(400).json({ error: "Verplichte velden ontbreken." });
+    return res.status(400).json({ message: "Alle velden zijn verplicht." });
   }
 
   try {
-    // 1. ✅ Check of speler al bestaat
-    const checkRes = await fetch(`https://cms.core.909play.com/items/players?filter[email][_eq]=${encodeURIComponent(email)}`, {
-      headers: {
-        Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-      }
-    });
-    const existing = await checkRes.json();
-    if (existing?.data?.length > 0) {
-      return res.status(400).json({ error: "Er bestaat al een account met dit e-mailadres." });
-    }
-
-    // 2. 🧩 Check op geldig token (optioneel)
+    // Controleer op geldige payment token (indien aanwezig)
+    const urlParams = new URLSearchParams(req.headers.referer?.split("?")[1]);
+    const token = urlParams.get("token");
     let paid_access_until = null;
 
     if (token) {
-      const tokenCheck = await fetch(`https://cms.core.909play.com/items/payment_tokens?filter[token][_eq]=${token}`, {
+      const tokenRes = await fetch(`https://cms.core.909play.com/items/payment_tokens?filter[token][_eq]=${encodeURIComponent(token)}`, {
         headers: {
           Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
         }
       });
-      const tokenData = await tokenCheck.json();
-      const entry = tokenData?.data?.[0];
+      const tokenData = await tokenRes.json();
+      const match = tokenData?.data?.[0];
 
-      if (!entry || new Date(entry.valid_until) < new Date()) {
-        return res.status(400).json({ error: "Deze toegangscode is ongeldig of verlopen." });
+      if (match && new Date(match.valid_until) > new Date()) {
+        paid_access_until = match.valid_until;
+
+        // Token eenmalig verwijderen
+        await fetch(`https://cms.core.909play.com/items/payment_tokens/${match.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
+          }
+        });
       }
-
-      paid_access_until = entry.valid_until;
-
-      // Optioneel: token verwijderen na gebruik
-      await fetch(`https://cms.core.909play.com/items/payment_tokens/${entry.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer m-5sBEpExkYWgJ5zuepQWq2WCsS0Yd6u"
-        }
-      });
     }
 
-    // 3. ✅ Maak nieuw player account aan
+    // Maak nieuwe speler aan
     const createRes = await fetch("https://cms.core.909play.com/items/players", {
       method: "POST",
       headers: {
@@ -64,19 +52,18 @@ export default async function handler(req, res) {
         email,
         password,
         username,
-        paid_access_until: paid_access_until ?? null
+        paid_access_until
       })
     });
 
-    const newPlayer = await createRes.json();
+    const created = await createRes.json();
     if (!createRes.ok) {
-      return res.status(400).json({ error: "Registratie mislukt." });
+      return res.status(400).json({ message: "Registratie mislukt.", error: created });
     }
 
-    return res.status(200).json({ message: "Account aangemaakt", player: newPlayer.data });
-
+    return res.status(200).json({ message: "Registratie gelukt" });
   } catch (err) {
     console.error("Registratiefout:", err);
-    return res.status(500).json({ error: "Interne fout bij registratie." });
+    return res.status(500).json({ message: "Fout bij registratie" });
   }
 }
