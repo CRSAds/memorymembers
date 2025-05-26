@@ -149,7 +149,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const cards = shuffle([...selected, ...selected]);
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
-    board.style.gridTemplateColumns = count === 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
+    const isMobile = window.innerWidth < 768;
+if (isMobile) {
+  board.style.gridTemplateColumns = currentLevel < 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
+} else {
+  board.style.gridTemplateColumns = "repeat(4, 1fr)";
+}
 
     cards.forEach(icon => board.appendChild(createCard(icon)));
 
