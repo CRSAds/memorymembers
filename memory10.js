@@ -38,16 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
   board.className = "game-board";
   gameContainer.appendChild(board);
 
-  const skip = document.createElement("button");
-  skip.textContent = "⏭️ Sla spel over en toon scores";
-  skip.className = "cta-button";
-  skip.style.margin = "16px auto";
-  skip.onclick = async () => {
-    await updateHighscoreIfNeeded(totalScore);
-    window.location.href = `https://nl.wincadeaukaarten.com/highscores?player=${player.id}&score=${totalScore}`;
-  };
-  gameContainer.appendChild(skip);
-
   async function checkAccess() {
     try {
       const res = await fetch(`https://memorymembers.vercel.app/api/get-player?id=${player.id}`);
