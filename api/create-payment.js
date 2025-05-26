@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     const mollieRes = await fetch("https://api.mollie.com/v2/payments", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer test_T6uA72u6RRaKEg2mJHM2e4wyJNHBuN",
+        "Authorization": "Bearer live_UdyVD2fChetwfdt9fP97MwnCWc5JyE",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
