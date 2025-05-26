@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        amount: { value: "1.99", currency: "EUR" },
+        amount: { value: "0.99", currency: "EUR" },
         description: "Toegang tot het memory spel (7 dagen)",
         redirectUrl,
         webhookUrl: "https://memorymembers.vercel.app/api/webhook",
