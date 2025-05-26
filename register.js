@@ -1,3 +1,5 @@
+// register.js
+
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("register-form");
   if (!form) return;
@@ -9,8 +11,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const email = form.email.value.trim();
     const password = form.password.value.trim();
 
+    const feedback = document.querySelector(".feedback");
+    if (feedback) feedback.remove();
+
     if (!username || !email || !password) {
-      console.warn("Vul alle velden in.");
+      showMessage("Vul alle velden in.", "error");
       return;
     }
 
@@ -24,16 +29,24 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const result = await response.json();
-      console.log("Registratie respons:", result);
 
-      if (!response.ok) {
-        console.error("Fout bij registreren:", result);
-        return;
+      if (response.ok) {
+        showMessage("✅ Registratie is gelukt, je kunt nu inloggen en direct beginnen met spelen!", "success");
+        form.reset();
+      } else {
+        console.error(result);
+        showMessage("❌ " + (result.errors?.[0]?.message || result.message || "Fout bij registreren."), "error");
       }
-
-      window.location.href = "/memorygamespelen";
     } catch (err) {
-      console.error("Fout bij registreren:", err);
+      console.error(err);
+      showMessage("❌ Verbinding mislukt.", "error");
     }
   });
+
+  function showMessage(msg, type) {
+    const div = document.createElement("div");
+    div.className = `feedback ${type}`;
+    div.textContent = msg;
+    form.prepend(div);
+  }
 });
