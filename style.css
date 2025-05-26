@@ -41,7 +41,15 @@ body {
   align-items: center;
   margin: 0 auto;
   padding: 0;
-  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  grid-template-columns: repeat(3, minmax(80px, 1fr)); /* <-- aanpassen */
+}
+
+@media (min-width: 768px) {
+  .game-board {
+    grid-template-columns: repeat(auto-fit, 140px); /* 140px vaste kaarten op desktop */
+    max-width: calc(140px * 4 + 36px); /* 4 kaarten + 3 keer 12px tussenruimte */
+    margin: 0 auto;
+  }
 }
 
 /* Kaarten */
