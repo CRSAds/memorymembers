@@ -150,11 +150,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
     const isMobile = window.innerWidth < 768;
-if (isMobile) {
-  board.style.gridTemplateColumns = currentLevel < 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
-} else {
-  board.style.gridTemplateColumns = "repeat(4, 1fr)";
-}
+    if (count === 6) {
+    board.style.gridTemplateColumns = "repeat(3, 1fr)";
+    } else {
+    board.style.gridTemplateColumns = "repeat(4, 1fr)";
+    }
 
     cards.forEach(icon => board.appendChild(createCard(icon)));
 
