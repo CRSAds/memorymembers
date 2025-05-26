@@ -42,7 +42,8 @@ document.addEventListener("DOMContentLoaded", function () {
   skip.textContent = "⏭️ Sla spel over en toon scores";
   skip.className = "cta-button";
   skip.style.margin = "16px auto";
-  skip.onclick = () => {
+  skip.onclick = async () => {
+    await updateHighscoreIfNeeded(totalScore);
     window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
   };
   gameContainer.appendChild(skip);
@@ -79,14 +80,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function handleWin() {
+  async function handleWin() {
     clearInterval(timerInterval);
     const timeUsed = 120 - timeLeft;
     const score = Math.max(1000, Math.round(10000 - timeUsed * 75));
     totalScore += score;
     levelScores.push({ level: currentLevel + 1, score });
 
-    saveScore(score, timeUsed);
+    await saveScore(score, timeUsed);
 
     currentLevel++;
     if (currentLevel < levels.length) {
@@ -96,7 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
         startGame();
       }, 600);
     } else {
-      updateHighscoreIfNeeded(totalScore);
+      await updateHighscoreIfNeeded(totalScore);
       window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
     }
   }
