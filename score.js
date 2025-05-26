@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // 🔸 Persoonlijke highscore ophalen
   try {
-    const res = await fetch(`/api/get-player?id=${playerId}`);
+    const res = await fetch("https://memorymembers.vercel.app/api/get-player?id=" + playerId);
     const data = await res.json();
     const best = data.data?.total_score || 0;
     const bestp = document.createElement("p");
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // 🔸 Top 10 ophalen
   try {
-    const res = await fetch("/api/get-top-players");
+    const res = await fetch("https://memorymembers.vercel.app/api/get-top-players");
     const data = await res.json();
     const top = document.createElement("div");
     top.innerHTML = `<h4>🏅 Top 10 Spelers</h4>`;
