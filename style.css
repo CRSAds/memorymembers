@@ -44,13 +44,6 @@ body {
   grid-template-columns: repeat(3, minmax(80px, 1fr));
 }
 
-/* Op grotere schermen (desktop) altijd 4 kolommen */
-@media (min-width: 768px) {
-  .game-board {
-    grid-template-columns: repeat(4, 150px);
-  }
-}
-
 /* Kaarten */
 .card {
   width: 100%;
