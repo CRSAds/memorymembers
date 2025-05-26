@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function saveScore(score, time) {
     try {
-      await fetch("/api/save-score", {
+      await fetch("https://memorymembers.vercel.app/api/save-score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function updateHighscoreIfNeeded(score) {
     try {
-      await fetch("/api/update-highscore", {
+      await fetch("https://memorymembers.vercel.app/api/update-highscore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playerId: player.id, score })
