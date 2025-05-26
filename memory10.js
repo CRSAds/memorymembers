@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const playerData = localStorage.getItem("player");
   if (!playerData) {
-    window.location.href = "/";
+    window.location.href = "/"; // terug naar login/registratie
     return;
   }
 
@@ -47,6 +47,31 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = `https://nl.wincadeaukaarten.com/highscores?player=${player.id}&score=${totalScore}`;
   };
   gameContainer.appendChild(skip);
+
+  async function checkAccess() {
+    try {
+      const res = await fetch(`https://memorymembers.vercel.app/api/get-player?id=${player.id}`);
+      const data = await res.json();
+      const until = data.data?.paid_access_until;
+      const now = new Date().toISOString();
+
+      if (!until || now > until) {
+        document.body.innerHTML = `
+          <div style="text-align:center;padding:48px;font-size:20px">
+            ❌ Je hebt op dit moment geen toegang.<br><br>
+            📅 Een betaling van €1,99 is vereist voor 7 dagen toegang.<br><br>
+            <a href="https://nl.wincadeaukaarten.com/?email=${encodeURIComponent(player.email)}" class="cta-button">Betaal nu & krijg toegang</a>
+          </div>
+        `;
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Toegangscontrole mislukt:", err);
+      return false;
+    }
+  }
 
   function createCard(src) {
     const card = document.createElement("div");
@@ -149,10 +174,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const cards = shuffle([...selected, ...selected]);
 
     levelHeader.textContent = `Level ${currentLevel + 1} van ${levels.length}`;
-
-    // Reset classlist voor styling
-    board.classList.remove("level-6", "level-12", "level-16");
-    board.classList.add(`level-${count}`);
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      board.style.gridTemplateColumns = currentLevel < 6 ? "repeat(3, 1fr)" : "repeat(4, 1fr)";
+    } else {
+      board.style.gridTemplateColumns = currentLevel < 3 ? "repeat(3, 140px)" : "repeat(4, 140px)";
+    }
 
     cards.forEach(icon => board.appendChild(createCard(icon)));
 
@@ -170,5 +197,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return arr.sort(() => Math.random() - 0.5);
   }
 
-  startGame();
+  checkAccess().then(access => {
+    if (access) startGame();
+  });
 });
