@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("login-form");
+  const feedback = document.getElementById("login-feedback");
   if (!form) return;
 
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
+    feedback.textContent = "";
 
     const email = form.email.value.trim();
     const password = form.password.value.trim();
@@ -16,19 +18,22 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const result = await response.json();
-      console.log("Login respons:", result);
 
       if (!response.ok) {
-        console.warn("Login mislukt:", result.message || "Onbekende fout.");
+        feedback.textContent = result.message || "Inloggen mislukt.";
+        feedback.style.color = "#ff0000";
         return;
       }
 
-      // ✅ Save player to localStorage
+      localStorage.setItem("access_token", result.access_token);
+      localStorage.setItem("refresh_token", result.refresh_token);
       localStorage.setItem("player", JSON.stringify(result.user));
-      window.location.href = "/memorygamespelen";
 
+      window.location.href = "/memorygamespelen";
     } catch (err) {
       console.error("Fout:", err);
+      feedback.textContent = "Er ging iets mis. Probeer opnieuw.";
+      feedback.style.color = "#ff0000";
     }
   });
 });
