@@ -166,47 +166,43 @@ body {
 }
 
 /* Inlog- en registratieformulieren */
-.auth-container {
-  max-width: 440px;
-  margin: 0 auto;
-  padding: 32px 24px;
+.auth-form {
+  max-width: 400px;
+  margin: 32px auto;
+  padding: 32px;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  text-align: left;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  font-family: "Inter", sans-serif;
 }
 
-.auth-container h2 {
+.auth-form h2 {
+  text-align: center;
   font-size: 24px;
   color: #4b0082;
   margin-bottom: 16px;
-  text-align: center;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .auth-form label {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 4px;
   display: block;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  color: #333;
 }
 
-.auth-form input[type="text"],
-.auth-form input[type="email"],
-.auth-form input[type="password"] {
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 16px;
+.auth-form input {
   width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-.auth-form .cta-button {
+.auth-form button {
+  width: 100%;
+  margin-top: 24px;
   background-color: #fe882b;
   color: white;
   padding: 14px;
@@ -215,33 +211,30 @@ body {
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  width: 100%;
-  margin-top: 8px;
-  text-align: center;
+  transition: background 0.2s ease;
 }
 
-.auth-toggle {
-  margin-top: 16px;
+.auth-form button:hover {
+  background-color: #ff9b4a;
+}
+
+.auth-form .feedback {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.auth-form .feedback.success {
+  color: #28a745;
+}
+
+.auth-form .feedback.error {
+  color: #dc3545;
+}
+
+.auth-form .form-toggle {
+  margin-top: 24px;
   text-align: center;
   font-size: 14px;
-}
-
-.auth-toggle button {
-  background: none;
-  border: none;
-  color: #4b0082;
-  cursor: pointer;
-  font-weight: 600;
-  text-decoration: underline;
-}
-
-/* Feedbackmeldingen */
-.auth-message {
-  text-align: center;
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #f0f9ff;
-  color: #0077cc;
-  font-weight: 600;
+  color: #555;
 }
