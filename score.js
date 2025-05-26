@@ -1,13 +1,13 @@
 document.addEventListener("DOMContentLoaded", async function () {
-  const root = document.getElementById("score-root");
-  if (!root) {
-    console.warn("score-root niet gevonden. Script afgebroken.");
-    return;
-  }
-
   const params = new URLSearchParams(window.location.search);
   const playerId = params.get("player");
   const score = parseInt(params.get("score"), 10) || 0;
+  const root = document.getElementById("score-root");
+
+  if (!root) {
+    console.error("❌ Element met id 'score-root' niet gevonden.");
+    return;
+  }
 
   if (!playerId) {
     root.innerHTML = "<p style='text-align:center'>❌ Geen speler ID gevonden in URL.</p>";
