@@ -31,18 +31,20 @@ body {
 
 .game-board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  grid-template-columns: repeat(3, 1fr); /* mobiel: 3 kolommen */
   gap: 12px;
   justify-content: center;
   justify-items: center;
   align-items: center;
   margin: 0 auto;
   padding: 0;
+  max-width: 600px;
 }
 
 @media (min-width: 768px) {
   .game-board {
-    grid-template-columns: repeat(4, 150px);
+    grid-template-columns: repeat(4, 1fr); /* desktop: 4 kolommen */
+    max-width: 640px;
   }
 }
 
@@ -61,10 +63,11 @@ body {
   perspective: 1000px;
 }
 
+/* ✅ Geen vaste width/height meer nodig */
 @media (min-width: 768px) {
   .card {
-    width: 140px;
-    height: 140px;
+    width: 100%;
+    max-width: 140px;
   }
 }
 
