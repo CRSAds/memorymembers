@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
   skip.style.margin = "16px auto";
   skip.onclick = async () => {
     await updateHighscoreIfNeeded(totalScore);
-    window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
+    window.location.href = `https://nl.wincadeaukaarten.com/highscores?player=${player.id}&score=${totalScore}`;
   };
   gameContainer.appendChild(skip);
 
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 600);
     } else {
       await updateHighscoreIfNeeded(totalScore);
-      window.location.href = `/highscores?player=${player.id}&score=${totalScore}`;
+      window.location.href = `https://nl.wincadeaukaarten.com/highscores?player=${player.id}&score=${totalScore}`;
     }
   }
 
