@@ -254,13 +254,3 @@ body {
     gap: 48px;
   }
 }
-
-.single-form-page .form-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.single-form-page .auth-form {
-  max-width: 440px;
-  width: 100%;
-}
