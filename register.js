@@ -1,52 +1,38 @@
-// register.js
-
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("register-form");
   if (!form) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const paymentToken = urlParams.get("token");
 
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const username = form.username.value.trim();
     const email = form.email.value.trim();
-    const password = form.password.value.trim();
-
-    const feedback = document.querySelector(".feedback");
-    if (feedback) feedback.remove();
-
-    if (!username || !email || !password) {
-      showMessage("Vul alle velden in.", "error");
-      return;
-    }
+    const password = form.password.value;
 
     try {
       const response = await fetch("https://memorymembers.vercel.app/api/register-player", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, email, password })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password, token: paymentToken })
       });
 
       const result = await response.json();
 
-      if (response.ok) {
-        showMessage("✅ Registratie is gelukt, je kunt nu inloggen en direct beginnen met spelen!", "success");
-        form.reset();
-      } else {
-        console.error(result);
-        showMessage("❌ " + (result.errors?.[0]?.message || result.message || "Fout bij registreren."), "error");
+      if (!response.ok) {
+        document.getElementById("register-feedback").textContent = result.message || "Registratie mislukt.";
+        return;
       }
+
+      document.getElementById("register-feedback").textContent = "✅ Registratie gelukt. Je kunt nu inloggen!";
+      document.getElementById("register-feedback").style.color = "green";
+      form.reset();
+
     } catch (err) {
-      console.error(err);
-      showMessage("❌ Verbinding mislukt.", "error");
+      console.error("Fout bij registratie:", err);
+      document.getElementById("register-feedback").textContent = "Kon niet registreren. Probeer opnieuw.";
     }
   });
-
-  function showMessage(msg, type) {
-    const div = document.createElement("div");
-    div.className = `feedback ${type}`;
-    div.textContent = msg;
-    form.prepend(div);
-  }
 });
